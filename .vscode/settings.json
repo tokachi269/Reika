@@ -1,7 +1,0 @@
-{
-    "solargraph.completion": true,
-    "solargraph.hover": true,
-    "solargraph.diagnostics": false,
-    // "solargraph.useBundler": true,
-    "editor.tabSize": 2,
-}
