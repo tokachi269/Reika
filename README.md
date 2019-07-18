@@ -1,5 +1,4 @@
 # Reika
-[![Build Status](https://travis-ci.org/takana-v/reika-python.svg?branch=master)](https://travis-ci.org/takana-v/reika-python)
 
 saki7氏の[Reika](https://github.com/SETNAHQ/Reika)をpythonで実装
 
