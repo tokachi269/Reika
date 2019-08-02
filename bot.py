@@ -15,7 +15,7 @@ import pytz
 import requests
 import urllib.parse
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 sv_setting = read_pickle('setting.pkl')
 server_admin = 473143965923934220
 
@@ -543,17 +543,19 @@ def main(token):
             else:
                 search_result = search_author(steam_url,raw_searchtext[0][2:])
                 if search_result is None:
-                    try:
-                        if sv_setting[message.guild.id]['csljp'] == 1:
-                            await message.channel.send('結果が見つからなかった...')
-                        else:
+                    steam_url = 'https://steamcommunity.com/workshop/browse/?appid='+str(sv_setting[message.guild.id]['gameid'])+'&searchtext='+searchtext[:-1]+'&browsesort=trend'
+                    search_result = search_author(steam_url,raw_searchtext[0][2:])
+                    if search_result is None:
+                        try:
+                            if sv_setting[message.guild.id]['csljp'] == 1:
+                                await message.channel.send('結果が見つからなかった...')
+                            else:
+                                await message.channel.send('見つかりませんでした。/ Not found')
+                            return
+                        except:
                             await message.channel.send('見つかりませんでした。/ Not found')
-                        return
-                    except:
-                        await message.channel.send('見つかりませんでした。/ Not found')
-                        return
-                else:
-                    await message.channel.send(search_result)
+                            return
+                await message.channel.send(search_result)
 
         else:
             message_text = message.content.replace('\n',' ').replace('　',' ').split(' ')
