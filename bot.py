@@ -3,6 +3,7 @@
 https://github.com/takana-v/Reika
 '''
 import datetime
+import random
 import re
 import sys
 import unicodedata
@@ -15,7 +16,7 @@ import pytz
 import requests
 import urllib.parse
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 sv_setting = read_pickle('setting.pkl')
 server_admin = 473143965923934220
 
@@ -40,6 +41,31 @@ def search_url(url):
         return str(html.xpath('//div[contains(@class,"workshopItemTitle")]/..')[0].attrib["href"])
     except:
         return None
+
+def talk(word):
+    words_dic_1 = [':peropero:','ペロペロ','ぺろぺろ',':peroperov:',':peroperoh:',':ashi_asi:',':oppai:',':eroi:']
+    for i in words_dic_1:
+        if i in word:
+            return 1
+
+    if re.fullmatch(r'.*:chin_tin:.*(:chin_tin:)|(:ko:)',word):
+        return 1
+
+    words_dic_2 = [':kawaii:','かわいい','可愛い']
+    for i in words_dic_2:
+        if i in word:
+            name_check = word.split(i)[0]
+            for i in ['Reika','reika','Reika_','れいか','レイカ']:
+                if i in name_check:
+                    return 2
+            if re.fullmatch(r'<@\d+>\s*',name_check):
+                return 2
+            return 3
+
+    if '意気込み' in message.content:
+        return 4
+
+    return 0
 
 def get_last_update(posted_time):
     updated_time_status = (int(datetime.datetime.now().timestamp())-posted_time) // 86400
@@ -438,35 +464,17 @@ def main(token):
             exit()
 
         elif str(client.user.id) in message.content and sv_setting[message.guild.id]['csljp'] == 1:
-            if ':peropero:' in message.content:
+            if random.randint(1,100) > 95:
+                await message.channel.send(f'{message.author.mention} ...')
+                return
+            talk_status = talk(message.content)
+            if talk_status == 1:
                 await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif 'ペロペロ' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif 'ぺろぺろ' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':peroperov:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':peroperoh:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':ashi_asi:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':oppai:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':eroi:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':chin_tin::chin_tin:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':chin_tin::ko:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':chin_tin: :chin_tin:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif ':chin_tin: :ko:' in message.content:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
-            elif 'かわいい' in message.content:
+            elif talk_status == 2:
                 await message.channel.send(f'{message.author.mention} 知ってる。')
-            elif ':kawaii:' in message.content:
-                await message.channel.send(f'{message.author.mention} 知ってる。')
-            elif '意気込み' in message.content:
+            elif talk_status == 3:
+                await message.channel.send(f'{message.author.mention} ん？')
+            elif talk_status == 4:
                 await message.channel.send(f'{message.author.mention} あんたには負けないんだから')
 
         elif message.content.startswith('r/set-gameid'):
