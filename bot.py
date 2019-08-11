@@ -566,9 +566,10 @@ def main(token):
                 await message.channel.send(search_result)
 
         else:
-            message_text = message.content.replace('\n',' ').replace('　',' ').split(' ')
+            message_text = message.content
             for i in message.raw_mentions:
                 message_text = message_text.replace('<@'+i+'>','<@'+i+'> ')
+            message_text = message_text.replace('\n',' ').replace('　',' ').split(' ')
             for i in message_text:
                 result = check_url(i)
                 if result is None:
