@@ -16,7 +16,7 @@ import pytz
 import requests
 import urllib.parse
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 sv_setting = read_pickle('setting.pkl')
 server_admin = 473143965923934220
 
@@ -48,7 +48,7 @@ def talk(word):
         if i in word:
             return 1
 
-    if re.fullmatch(r'.*:chin_tin:.*(:chin_tin:)|(:ko:)',word):
+    if re.fullmatch(r'.*:chin_tin:.*(:chin_tin:)|(:ko:).*',word):
         return 1
 
     words_dic_2 = [':kawaii:','かわいい','可愛い']
@@ -567,6 +567,8 @@ def main(token):
 
         else:
             message_text = message.content.replace('\n',' ').replace('　',' ').split(' ')
+            for i in message.raw_mentions:
+                message_text = message_text.replace('<@'+i+'>','<@'+i+'> ')
             for i in message_text:
                 result = check_url(i)
                 if result is None:
