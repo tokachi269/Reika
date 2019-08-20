@@ -2,6 +2,7 @@
 
 https://github.com/takana-v/Reika
 '''
+import asyncio
 import datetime
 import random
 import re
@@ -16,7 +17,7 @@ import pytz
 import requests
 import urllib.parse
 
-__version__ = '1.0.3'
+__version__ = '1.1.0'
 sv_setting = read_pickle('setting.pkl')
 server_admin = 473143965923934220
 
@@ -448,17 +449,70 @@ def check_url(url):
     else:
         return None
 
+def user_workshop_check(steam_user_url,app_id,last_url):
+    html = lxml.html.fromstring(requests.get(steam_user_url+"/myworkshopfiles/?appid="+str(app_id)+"&p=1").text)
+    notice_url = []
+    for i in range(9):
+        try:
+            result_url = html.xpath('//div[@class="workshopBrowseRow"]/div[contains(@class,"workshopItem")]/a[1]')[i].attrib['href']
+            if result_url == last_url:
+                break
+            notice_url.append(result_url)
+        except:
+            pass
+    return notice_url
+
+def next_post_reset():
+    next_post_list = {}
+    for i in sv_setting.keys():
+        next_post_list[i] = []
+    return next_post_list
+
 def main(token):
     client = discord.Client()
 
     @client.event
     async def on_ready():
-        pass
+        next_post = next_post_reset()
+        while True:
+            for key in sv_setting.keys():
+                if len(sv_setting[key]['notice']) != 0:
+                    if len(next_post[key]) != 0:
+                        try:
+                            channel = client.get_channel(sv_setting[key]['notice_channel'])
+                            for i in next_post:
+                                await channel.send(url)
+                                await asyncio.sleep(1.5)
+                        except:
+                            pass
+            next_post = next_post_reset()
+
+            for key in sv_setting.keys():
+                if 'notice' in sv_setting[key]:
+                    if len(sv_setting[key]['notice']) != 0:
+                        for user in sv_setting[key]['notice']:
+                            try:
+                                workshop_items = user_workshop_check(user,sv_setting[key]['gameid'],sv_setting[key]['notice'][user])
+                                for url in workshop_items:
+                                    next_post[key].append(url)
+                                sv_setting[key]['notice'][user] = workshop_items[0]
+                                to_pickle(sv_setting,'setting.pkl')
+                            except:
+                                pass
+            await asyncio.sleep(900)
 
     @client.event
     async def on_message(message):
         if str(message.channel.type) != 'text':
             return
+
+        if not message.guild.id in sv_setting:
+            sv_setting[message.guild.id] = {}
+            to_pickle(sv_setting,'setting.pkl')
+
+        if not 'notice' in sv_setting[message.guild.id]:
+            sv_setting[message.guild.id]['notice'] = {}
+            to_pickle(sv_setting,'setting.pkl')
 
         if message.content == "r/stop" and message.author.id == server_admin:
             exit()
@@ -480,28 +534,42 @@ def main(token):
         elif message.content.startswith('r/set-gameid'):
             if message.author.id != server_admin and message.author.id != message.guild.owner_id:
                 return
-            try:
-                sv_setting.update({message.guild.id:{'gameid':str(int(message.content.split(' ')[1])),'csljp':sv_setting[message.guild.id]['csljp']}})
-            except:
-                try:
-                    sv_setting.update({message.guild.id:{'gameid':str(int(message.content.split(' ')[1]))}})
-                except:
-                    return
+            sv_setting[message.guild.id]['gameid'] = str(int(message.content.split(' ')[1]))
             to_pickle(sv_setting,'setting.pkl')
             await message.channel.send('[OK] gameid = '+str(message.content.split(' ')[1]))
 
         elif message.content.startswith('r/set-csljp'):
             if message.author.id != server_admin and message.author.id != message.guild.owner_id:
                 return
-            try:
-                sv_setting.update({message.guild.id:{'gameid':sv_setting[message.guild.id]['gameid'],'csljp':int(message.content.split(' ')[1])}})
-            except:
-                try:
-                    sv_setting.update({message.guild.id:{'csljp':int(message.content.split(' ')[1])}})
-                except:
-                    return
+            sv_setting[message.guild.id]['csljp'] = int(message.content.split(' ')[1])
             to_pickle(sv_setting,'setting.pkl')
             await message.channel.send('[OK] csljp = '+str(message.content.split(' ')[1]))
+
+        elif message.content.startswith('r/set-noticechannel'):
+            if message.author.id != server_admin and message.author.id != message.guild.owner_id:
+                return
+            sv_setting[message.guild.id]['notice_channel'] = int(message.content.split(' ')[1])
+            to_pickle(sv_setting,'setting.pkl')
+            await message.channel.send('[OK] notice_channel = '+str(message.content.split(' ')[1]))
+
+        elif message.content.startswith('r/add-noticeuser'):
+            if message.author.id != server_admin and message.author.id != message.guild.owner_id:
+                return
+            try:
+                sv_setting[message.guild.id]['notice'][str(message.content.split(' ')[1])] = user_workshop_check(str(message.content.split(' ')[1]),sv_setting[message.guild.id]['gameid'],'')[0]
+                to_pickle(sv_setting,'setting.pkl')
+            except:
+                if len(user_workshop_check(str(message.content.split(' ')[1]),sv_setting[message.guild.id]['gameid'],'')) == 0:
+                    sv_setting[message.guild.id]['notice'][str(message.content.split(' ')[1])] = ''
+                    to_pickle(sv_setting,'setting.pkl')
+            await message.channel.send('[OK] add_user = '+str(message.content.split(' ')[1]))
+
+        elif message.content.startswith('r/rm-noticeuser'):
+            if message.author.id != server_admin and message.author.id != message.guild.owner_id:
+                return
+            sv_setting[message.guild.id]['notice'].pop(str(message.content.split(' ')[1]))
+            to_pickle(sv_setting,'setting.pkl')
+            await message.channel.send('[OK] rm_user = '+str(message.content.split(' ')[1]))
 
         elif message.content.startswith('r/view-setting'):
             if message.author.id != server_admin and message.author.id != message.guild.owner_id:
@@ -518,6 +586,10 @@ def main(token):
             if message.author.id == server_admin or message.author.id == message.guild.owner_id:
                 embed.add_field(name='r/set-gameid',value='You can get gameid on url of storepage. e.g.(Cities:Skylines) r/set-gameid 255710', inline=False)
                 embed.add_field(name='r/set-csljp',value='0 or 1 (Default:0)', inline=False)
+                embed.add_field(name='r/set-noticechannel',value='チャンネルIDを指定', inline=False)
+                embed.add_field(name='r/add-noticeuser',value='追加するユーザーのURL（最後にスラッシュを付けない）', inline=False)
+                embed.add_field(name='r/rm-noticeuser',value='削除するユーザーのURL', inline=False)
+                embed.add_field(name='r/view-setting',value='全ての設定を確認', inline=False)
             embed.set_footer(text='Reika ver '+str(__version__))
             await message.channel.send(embed=embed)
 
