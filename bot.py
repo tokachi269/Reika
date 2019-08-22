@@ -480,9 +480,9 @@ def main(token):
                     if len(next_post[key]) != 0:
                         try:
                             channel = client.get_channel(sv_setting[key]['notice_channel'])
-                            for i in next_post:
-                                await channel.send(url)
-                                await asyncio.sleep(1.5)
+                            for i in next_post[key]:
+                                await channel.send(i)
+                                await asyncio.sleep(1)
                         except:
                             pass
             next_post = next_post_reset()
@@ -499,7 +499,7 @@ def main(token):
                                 to_pickle(sv_setting,'setting.pkl')
                             except:
                                 pass
-            await asyncio.sleep(900)
+            await asyncio.sleep(600)
 
     @client.event
     async def on_message(message):
