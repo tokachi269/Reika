@@ -453,14 +453,20 @@ def user_workshop_check(steam_user_url,app_id,last_url):
     html = lxml.html.fromstring(requests.get(steam_user_url+"/myworkshopfiles/?appid="+str(app_id)+"&p=1").text)
     notice_url = []
     for i in range(9):
+        r_last_url = last_url
         try:
             result_url = html.xpath('//div[@class="workshopBrowseRow"]/div[contains(@class,"workshopItem")]/a[1]')[i].attrib['href']
             if result_url == last_url:
                 break
+            check_date = workshop(result_url)['field']['field2']['value']
+            if 'Today' not in check_date:
+                if i == 0:
+                    r_last_url = result_url
+                break
             notice_url.append(result_url)
         except:
             pass
-    return notice_url
+    return notice_url, r_last_url
 
 def next_post_reset():
     next_post_list = {}
@@ -492,7 +498,10 @@ def main(token):
                     if len(sv_setting[key]['notice']) != 0:
                         for user in sv_setting[key]['notice']:
                             try:
-                                workshop_items = user_workshop_check(user,sv_setting[key]['gameid'],sv_setting[key]['notice'][user])
+                                workshop_items, r_last_url = user_workshop_check(user,sv_setting[key]['gameid'],sv_setting[key]['notice'][user])
+                                if r_last_url != sv_setting[key]['notice'][user]:
+                                    sv_setting[key]['notice'][user] = r_last_url
+                                    to_pickle(sv_setting,'setting.pkl')
                                 for url in workshop_items:
                                     next_post[key].append(url)
                                 sv_setting[key]['notice'][user] = workshop_items[0]
