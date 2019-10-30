@@ -23,12 +23,6 @@ https://store.steampowered.com/app/255710/Cities_Skylines/
 
 ### 検索機能の実装
 
-`s/ word`で[steamワークショップ](https://steamcommunity.com/app/255710/workshop/)での検索結果を表示
-`s/author word`で作者名で絞込可能
-
-### ワークショップ以外のページに対応
-
-スクリーンショット、作品、動画のページではサブスクライブの代わりにgood数を表示
-
+`s/ word`でsteamワークショップでの検索結果を表示
 
 コードに修正（改善）すべき点を見つけた場合はPull RequestやIssuesから報告をお願いします。
