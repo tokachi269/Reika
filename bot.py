@@ -112,7 +112,7 @@ def talk(word):
 
             return TALK_RETURN.OTHER
 
-    if '意気込み' in message.content:
+    if '意気込み' in word:
         return TALK_RETURN.IKIGOMI
 
     return TALK_RETURN.NO
