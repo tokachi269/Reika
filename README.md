@@ -8,10 +8,7 @@ steamワークショップのURLが張られると、URL先の情報を取得し
 
 ## 導入
 
-以下のURLから招待できます。
-https://discordapp.com/api/oauth2/authorize?client_id=596897770728849418&permissions=313344&scope=bot
-
-招待が終わったら次のコマンドを実行してください。  
+Botを起動し、招待が終わったら次のコマンドを実行してください。  
 （サーバー管理者のみ可能）
 `r/set-gameid (gameid)`
 
