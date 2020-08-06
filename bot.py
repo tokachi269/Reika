@@ -86,7 +86,7 @@ def talk(word):
         他クラス参照
     """
     # 卑猥と判定するワード
-    words_dic_1 = [':peropero:','ペロペロ','ぺろぺろ',':peroperov:',':peroperoh:',':ashi_asi:',':oppai:',':eroi:']
+    words_dic_1 = [':peropero_lick:','ペロペロ','ぺろぺろ',':peroperov:',':peroperoh:',':ashi_asi_legs:',':oppai_boobs:',':eroi_porn:']
     for i in words_dic_1:
         # 一つづつチェック
         if i in word:
