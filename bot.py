@@ -16,7 +16,7 @@ import pytz
 import requests
 import urllib.parse
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 setting = {}
 
 # Defines
@@ -34,7 +34,8 @@ class TALK_RETURN:
 
 # reika管理者のdiscordユーザーID
 # このユーザーとサーバーオーナーのみが設定できる
-server_admin = 473143965923934220
+server_admin = 000000000000000000
+org_master = 000000000000000000 # 作成者のID
 
 def read_setting():
     """
@@ -86,7 +87,7 @@ def talk(word):
         他クラス参照
     """
     # 卑猥と判定するワード
-    words_dic_1 = [':peropero_lick:','ペロペロ','ぺろぺろ',':peroperov:',':peroperoh:',':ashi_asi_legs:',':oppai_boobs:',':eroi_porn:']
+    words_dic_1 = ['peropero','ペロペロ','ぺろぺろ','ashi_asi','oppai','おっぱい','eroi','エロ','chin_tin']
     for i in words_dic_1:
         # 一つづつチェック
         if i in word:
@@ -97,14 +98,14 @@ def talk(word):
         return TALK_RETURN.DT
 
     # reikaをほめる言葉リスト
-    words_dic_2 = [':kawaii:','かわいい','可愛い']
+    words_dic_2 = ['kawaii','かわいい','可愛い']
     for i in words_dic_2:
         # （自分の名前）かわいいと言ってreikaに「かわいい」と言わせようとする紳士を判定
         # 文中にreikaが入っていないと「ん？」と返す（はず）
         # どうやって動いているのか分からないけど動いているのでOK
         if i in word:
             name_check = word.split(i)[0]
-            for i2 in ['Reika','reika','Reika_','れいか','レイカ']:
+            for i2 in ['Reika','reika','Reika_','Reika_r','れいか','レイカ']:
                 if i2 in name_check:
                     return TALK_RETURN.TSUN
             if re.fullmatch(r'<@\d+>\s*',name_check):
@@ -450,14 +451,24 @@ def main(dc_token,steam_key):
                 await message.channel.send(f'{message.author.mention} ...')
                 return
             talk_status = talk(message.content)
+
+            # 非同期によって変数が反映されない？のが心配なので先にリストを作っておく
+            talk_list_dt = ['二度とわたしに話しかけないで', '変態ね', 'セクハラよ', 'こんなことしてないで街づくりでもしたらどう？']
+            talk_list_tsun = ['知ってる', '当然よね', '当たり前のこと言わないで', 'もっと言ってもいいのよ']
+            talk_list_other = ['ん？', 'わからないわ']
+            talk_list_ikigomi = ['あんたには負けないんだから', '気合十分よ', '今年も負けないからね']
+
             if talk_status == TALK_RETURN.DT:
-                await message.channel.send(f'{message.author.mention} 二度とわたしに話しかけないで')
+                if message.author.id == org_master:
+                    await message.channel.send(f'{message.author.mention} 私を作ってくれたことは感謝してる。でも{random.choice(talk_list_dt)}')
+                else:
+                    await message.channel.send(f'{message.author.mention} {random.choice(talk_list_dt)}')
             elif talk_status == TALK_RETURN.TSUN:
-                await message.channel.send(f'{message.author.mention} 知ってる。')
+                await message.channel.send(f'{message.author.mention} {random.choice(talk_list_tsun)}')
             elif talk_status == TALK_RETURN.OTHER:
-                await message.channel.send(f'{message.author.mention} ん？')
+                await message.channel.send(f'{message.author.mention} {random.choice(talk_list_other)}')
             elif talk_status == TALK_RETURN.IKIGOMI:
-                await message.channel.send(f'{message.author.mention} あんたには負けないんだから')
+                await message.channel.send(f'{message.author.mention}  {random.choice(talk_list_ikigomi)}')
             return
 
         # 各種設定
