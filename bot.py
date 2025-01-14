@@ -19,7 +19,7 @@ import os
 import openai
 import copy
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 setting = {}
 # 環境変数からトークンを取得
 # .envファイルから環境変数を読み込む
@@ -716,62 +716,33 @@ def main():
                     )
             return
 
-        # 各種設定
-        elif message.content.startswith("r/set-gameid"):
-            if (
-                message.author.id != server_admin
-                and message.author.id != message.guild.owner_id
-            ):
-                return
-            try:
-                setting[str(message.guild.id)]["gameid"] = str(
-                    int(message.content.split(" ")[1])
-                )
-                write_setting(setting)
-                await message.channel.send(
-                    "[OK] gameid = " + str(message.content.split(" ")[1])
-                )
-                return
-            except Exception:
-                traceback.print_exc()
-                await message.channel.send("[FAIL] gameid = ???")
-                return
-
         # ヘルプを表示
         elif message.content == ("r/help"):
             embed = discord.Embed()
             embed.add_field(
-                name="s/ word", value="search on steam/steamを検索します", inline=False
+                name="s/ gameId word", 
+                value='''
+                search on steam/steamを検索します
+                e.g.(Cities:Skylines) s/ 255710 japan
+                e.g.(Cities:SkylinesII) s/ 949230 japan
+                ''', inline=False
             )
             embed.add_field(name="r/help", value="ヘルプを表示します", inline=False)
-            # 管理者だった場合以下も表示
-            if (
-                message.author.id == server_admin
-                or message.author.id == message.guild.owner_id
-            ):
-                embed.add_field(
-                    name="r/set-gameid",
-                    value="You can get gameid on url of storepage. e.g.(Cities:Skylines) r/set-gameid 255710",
-                    inline=False,
-                )
+
             embed.set_footer(text="Reika ver " + str(__version__))
             await message.channel.send(embed=embed)
             return
 
         # 検索機能
         elif message.content.startswith("s/"):
-            raw_searchtext = message.content.split(" ")
-            if len(raw_searchtext) == 1:
+            parts = message.content.split(" ")
+            if len(parts) < 3:
+                await message.channel.send("[ERROR] 正しい形式で入力してください。例: s/ <gameid> <ワード>")
                 return
-            search_word = []
-            for i in range(1, len(raw_searchtext)):
-                search_word.append(raw_searchtext[i])
-            try:
-                app_id = setting[str(message.guild.id)]["gameid"]
-            except Exception:
-                await message.channel.send("`r/set-gameid`コマンドを使用してゲームIDをセットしてください。")
-                return
-            ret, res = searchitem(search_word, steam_key, app_id)
+
+            command, game_id, search_word = parts[0], parts[1], " ".join(parts[2:])
+            
+            ret, res = searchitem(search_word, steam_key, game_id)
             if ret != STANDARD_RETURN.OK:
                 await message.channel.send("何も見つからなかった...")
                 return
