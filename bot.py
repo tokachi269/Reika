@@ -737,7 +737,7 @@ def main():
         elif message.content.startswith("s/"):
             parts = message.content.split(" ")
             if len(parts) < 3:
-                await message.channel.send("[ERROR] 正しい形式で入力してください。例: s/ <gameid> <ワード>")
+                await message.channel.send("正しい形式で入力してね。例: s/ <gameid> <ワード>")
                 return
 
             command, game_id, search_word = parts[0], parts[1], " ".join(parts[2:])
